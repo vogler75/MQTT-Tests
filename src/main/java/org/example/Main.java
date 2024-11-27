@@ -9,9 +9,9 @@ import java.util.UUID;
 
 public class Main {
     public static void main(String[] args) {
-        String broker = "tcp://broker.hivemq.com:1883";
+        String broker = "tcp://linux0:1883";
         String clientId = UUID.randomUUID().toString();
-        String topic = "rocworks/rocworks";
+        String topic = "rocworks/#";
 
         try {
             // Create an MQTT client
