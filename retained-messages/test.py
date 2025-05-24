@@ -4,15 +4,19 @@ import time
 
 # Config
 BROKERS = [
-    {"host": "nuc1", "port": 10000},
-    {"host": "nuc1", "port": 10001},
-    {"host": "nuc1", "port": 10002},
+    {"host": "nuc1", "port": 1883},
+    #{"host": "nuc1", "port": 10000},
+    #{"host": "nuc1", "port": 10001},
+    #{"host": "nuc1", "port": 10002},
 ]
 MQTT_QOS = 0
 MAX_DEPTH = 10
 VALUES_PER_LEVEL = 10
 LOG_INTERVAL = 1000
-MESSAGES_PER_SECOND = 1000  # Target messages per second
+MESSAGES_PER_SECOND = 0  # Target messages per second
+MAX_MESSAGES = 10_000_000  # Maximum messages to publish per broker, 0 for no limit
+MQTT_USERNAME = "admin"  # Replace with your MQTT username
+MQTT_PASSWORD = "admin"  # Replace with your MQTT password
 
 def generate_topic_paths():
     """Generator that yields all increasing-depth topic paths up to MAX_DEPTH with VALUES_PER_LEVEL."""
@@ -27,6 +31,8 @@ def generate_topic_paths():
 
 def publish_to_broker(broker_config, broker_index):
     client = mqtt.Client()
+    if MQTT_USERNAME and MQTT_PASSWORD:
+        client.username_pw_set(MQTT_USERNAME, MQTT_PASSWORD)
     client.connect(broker_config["host"], broker_config["port"], 60)
     client.loop_start()
     time.sleep(1)
@@ -49,6 +55,10 @@ def publish_to_broker(broker_config, broker_index):
         info.wait_for_publish()
 
         count += 1
+
+        if MAX_MESSAGES > 0 and count >= MAX_MESSAGES:
+            print(f"[Broker {broker_index}] Reached MAX_MESSAGES limit of {MAX_MESSAGES}.")
+            break # Exit the loop if max messages are published
 
         # Log progress approximately every second
         current_time = time.time()
